@@ -82,6 +82,13 @@ class CartItem implements Arrayable, Jsonable
     public $taxRate = 0;
 
     /**
+     * If the associated model includes trashed.
+     *
+     * @var boolean
+     */
+    private $associatedTrashed = false;
+
+    /**
      * The FQN of the associated model.
      *
      * @var string|null
@@ -334,12 +341,14 @@ class CartItem implements Arrayable, Jsonable
      * Associate the cart item with the given model.
      *
      * @param mixed $model
+     * @param boolean $includesTrashed
      *
      * @return \Gloudemans\Shoppingcart\CartItem
      */
-    public function associate($model)
+    public function associate($model, $includesTrashed = false)
     {
         $this->associatedModel = is_string($model) ? $model : get_class($model);
+        $this->associatedTrashed = $includesTrashed;
 
         return $this;
     }
@@ -389,6 +398,10 @@ class CartItem implements Arrayable, Jsonable
         switch ($attribute) {
             case 'model':
                 if (isset($this->associatedModel)) {
+                    if ($this->associatedTrashed) {
+                        return with(new $this->associatedModel())->withTrashed()->find($this->id);
+                    }
+
                     return with(new $this->associatedModel())->find($this->id);
                 }
                 // no break
