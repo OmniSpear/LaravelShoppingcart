@@ -15,7 +15,7 @@
 
 Для запуску Завантажувача, скористайтеся командою у Терміналі:
 
-    composer require bumbummen99/shoppingcart
+    composer require omnispear/shoppingcart
 
 Тепер ви готові розпочати користуватися кошиком у вашому застосунку.
 
@@ -495,6 +495,9 @@ $cartItem->associate('Product');
 
 // You can even make it a one-liner
 Cart::add('293ad', 'Product 1', 1, 9.99, 550, ['size' => 'large'])->associate('Product');
+
+// Associating a model to a CartItem can also include trashed records
+$cartItem->associate('Product', true);
 
 // Now, when iterating over the content of the cart, you can access the model.
 foreach(Cart::content() as $row) {
