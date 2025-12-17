@@ -1,6 +1,6 @@
 {
     "name": "omnispear/shoppingcart",
-    "version": "4.1.0",
+    "version": "4.2.0",
     "description": "Laravel Shoppingcart",
     "keywords": ["laravel", "shoppingcart"],
     "license": "MIT",

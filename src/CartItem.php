@@ -103,6 +103,20 @@ class CartItem implements Arrayable, Jsonable
     private $discountRate = 0;
 
     /**
+     * Cached model instance to prevent repeated database queries.
+     *
+     * @var mixed
+     */
+    private $cachedModel = null;
+
+    /**
+     * Flag to indicate if model has been loaded from database.
+     *
+     * @var bool
+     */
+    private $modelLoaded = false;
+
+    /**
      * CartItem constructor.
      *
      * @param int|string $id
@@ -338,6 +352,20 @@ class CartItem implements Arrayable, Jsonable
     }
 
     /**
+     * Clear the cached model instance.
+     * Useful when the associated model changes or needs to be reloaded.
+     *
+     * @return \Gloudemans\Shoppingcart\CartItem
+     */
+    public function clearModelCache()
+    {
+        $this->cachedModel = null;
+        $this->modelLoaded = false;
+
+        return $this;
+    }
+
+    /**
      * Associate the cart item with the given model.
      *
      * @param mixed $model
@@ -349,6 +377,9 @@ class CartItem implements Arrayable, Jsonable
     {
         $this->associatedModel = is_string($model) ? $model : get_class($model);
         $this->associatedTrashed = $includesTrashed;
+
+        // Clear cached model when association changes
+        $this->clearModelCache();
 
         return $this;
     }
@@ -398,17 +429,28 @@ class CartItem implements Arrayable, Jsonable
         switch ($attribute) {
             case 'model':
                 if (isset($this->associatedModel)) {
-                    if ($this->associatedTrashed) {
-                        return with(new $this->associatedModel())->withTrashed()->find($this->id);
+                    // Return cached model if already loaded
+                    if ($this->modelLoaded) {
+                        return $this->cachedModel;
                     }
 
-                    return with(new $this->associatedModel())->find($this->id);
+                    // Load model from database and cache it
+                    if ($this->associatedTrashed) {
+                        $this->cachedModel = with(new $this->associatedModel())->withTrashed()->find($this->id);
+                    } else {
+                        $this->cachedModel = with(new $this->associatedModel())->find($this->id);
+                    }
+
+                    $this->modelLoaded = true;
+                    return $this->cachedModel;
                 }
+                return null;
                 // no break
             case 'modelFQCN':
                 if (isset($this->associatedModel)) {
                     return $this->associatedModel;
                 }
+                return null;
                 // no break
             case 'weightTotal':
                 return round($this->weight * $this->qty, $decimals);
