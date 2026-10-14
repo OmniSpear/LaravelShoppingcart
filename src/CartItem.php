@@ -366,6 +366,22 @@ class CartItem implements Arrayable, Jsonable
     }
 
     /**
+     * Set the cached model instance directly.
+     * Useful for preloading models for many cart items at once.
+     *
+     * @param mixed $model
+     *
+     * @return \Gloudemans\Shoppingcart\CartItem
+     */
+    public function setModel($model)
+    {
+        $this->cachedModel = $model;
+        $this->modelLoaded = true;
+
+        return $this;
+    }
+
+    /**
      * Associate the cart item with the given model.
      *
      * @param mixed $model
